@@ -1,0 +1,35 @@
+{% extends 'templates/app.twig' %} {% block content %}
+
+<div class="row">
+  <div class="col m4">
+    <img
+      src="{{ product.image }}"
+      alt="{{ product.title }} image"
+      class="responsive-img"
+    />
+  </div>
+
+  <div class="col m8">
+    {% if product.hasLowStock() %}
+
+    <span class="new badge amber" data-badge-caption="Low stock"></span>
+    {% endif %} {% if product.outOfStock() %}
+
+    <span
+      class="new badge red left-align"
+      data-badge-caption="Out of stock"
+    ></span>
+    {% endif %}
+    <h3>{{ product.title }}</h3>
+    <p>{{ product.description }}</p>
+
+    {% if product.inStock() %}
+    <a
+      href="{{ path_for('cart.add', { slug: product.slug, quantity: 1 }) }}"
+      class="waves-effect waves-light btn"
+      >Add to cart</a
+    >
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

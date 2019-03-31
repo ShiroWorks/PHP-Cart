@@ -1,0 +1,68 @@
+{% extends 'templates/app.twig' %} {% block content %}
+<div class="row">
+  <div class="col m8">
+    {% if basket.itemCount() %}
+
+    <table class="responsive-table highlight">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Price</th>
+          <th>Quantity</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in basket.all %}
+        <td>
+          <a href="{{ path_for('product.get', { slug: item.slug }) }}">{{
+            item.title
+          }}</a>
+        </td>
+        <td>EUR {{ item.price | number_format(2)}}</td>
+        <td>
+          <form action="{{path_for('cart.update', {slug:item.slug})}}" method="post">
+            <div class="input-field col s3">
+              <select name="quantity">
+                {% for num in 1..item.stock %}
+                <option value="{{ num }}"{% if num == item.quantity %} selected="selected"{% endif %}>{{ num }}</option>
+                {% endfor %}
+                <option value="0">0</option>
+              </select>
+            </div>
+            <div class="col s3">
+              <button
+                class="btn quantity-btn btn-small waves-effect waves-light"
+                type="submit"
+                name="action"
+              >
+                Submit
+              </button>
+            </div>
+          </form>
+        </td>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>
+      You have no items in your cart.
+      <a href="{{ path_for('home') }}">Start shopping.</a>
+    </p>
+    {% endif %}
+  </div>
+
+  <div class="col m4">
+    {% if basket.itemCount and basket.subTotal %}
+    <div>
+      <h4>Cart summary</h4>
+      <hr />
+      {% include 'cart/partials/summary.twig' %}
+
+      <a href="{{ path_for('order.index') }}" class="waves-effect waves-light btn checkout">Checkout</a>
+    </div>
+
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

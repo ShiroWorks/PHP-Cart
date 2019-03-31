@@ -1,0 +1,158 @@
+{% extends 'templates/app.twig' %} {% block content %}
+
+<form id="payment-form" action="{{ path_for('order.create') }}" method="post">
+  <div class="row">
+    <div class="col m8">
+      <div class="row">
+        <div class="col m6">
+          <h4>Your details</h3>
+          <hr />
+          <div class="row">
+            <div class="input-field col s12">
+              <input id="email" value="{{old.email}}" name="email" type="email" class="validate" />
+              <label for="email">Email</label>
+              {% if errors.email %}
+              <span class="red-text">{{errors.email | first}}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="input-field col s12">
+              <input id="name" value="{{old.name}}" name="name" type="text" class="validate" />
+              <label for="name">Full name</label>
+              {% if errors.name %}
+              
+              <span class="red-text">{{errors.name | first}}</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="col m6">
+          <h4>Shipping address</h3>
+          <hr />
+
+          <div class="row">
+            <div class="input-field col s12">
+              <input
+                id="address1"
+                value="{{old.address1}}"
+                name="address1"
+                type="text"
+                class="validate"
+              />
+              <label for="address1">Address line 1</label>
+              {% if errors.address1 %}
+              <span class="red-text">{{errors.address1 | first}}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="input-field col s12">
+              <input
+                id="address2"
+                value="{{old.address2}}"
+                name="address2"
+                type="text"
+                class="validate"
+              />
+              <label for="address2">Address line 2</label>
+              {% if errors.address2 %}
+              <span class="red-text">{{errors.address2 | first}}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="input-field col s12">
+              <input id="city" value="{{old.city}}" name="city" type="text" class="validate" />
+              <label for="city">City</label>
+              {% if errors.city %}
+              <span class="red-text">{{errors.city | first}}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="input-field col s12">
+              <input
+                id="postal_code"
+                value="{{old.postal_code}}"
+                name="postal_code"
+                type="number"
+                class="validate"
+              />
+              <label for="postal_code">Postal code</label>
+              {% if errors.postal_code %}
+              <span class="red-text">{{errors.postal_code | first}}</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      <h3>Payment</h3>
+      <hr>
+      <div id="payment"></div>
+    </div>
+    <div class="col m4">
+        
+            <h4 class="order-h4">Your order</h4>
+            <hr>
+
+            {% include 'cart/partials/contents.twig' %}
+            {% include 'cart/partials/summary.twig' %}
+
+            <button id="submit-button" class="order-btn btn waves-effect waves-light btn-small" type="submit" name="action">Place order
+              
+              </button>
+              <input id="nonce" name="payment_method_nonce" type="hidden" />
+    </div>
+  </div>
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+ <script src="https://js.braintreegateway.com/web/dropin/1.16.0/js/dropin.min.js"></script>
+
+
+<script>
+
+var form = document.querySelector('#payment-form');
+var client_token = "<?php echo($gateway->ClientToken()->generate()); ?>";
+
+$.ajax({
+  url: '{{ path_for('braintree.token') }}',
+  type: 'get',
+  dataType: 'json'
+}).done(function (data) {
+
+braintree.dropin.create({
+  authorization: data.token,
+  selector: '#payment',
+   paypal: {
+    flow: 'vault'
+  } 
+}, function (createErr, instance) {
+  if (createErr) {
+    console.log('Create Error', createErr);
+    return;
+  }
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    instance.requestPaymentMethod(function (err, payload) {
+      if (err) {
+        console.log('Request Payment Method Error', err);
+        return;
+      }
+      // Add the nonce to the form and submit
+      document.querySelector('#nonce').value = payload.nonce;
+      form.submit();
+    });
+  });
+});
+});
+</script>
+
+{% endblock %}
